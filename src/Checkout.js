@@ -3,66 +3,52 @@
  *
  * @export
  * @class Checkout
- * 
+ *
  * items // Items that have been added
  * totalCounts //Price at the moment
  * pricingRules //Map of Key => Code and Value => {code,name, price, count}
  * discounts //Array to discounts to apply [{code, discoutnFunc}]
  *
- * 
- * 
+ *
+ *
  */
-export class Checkout {
+export const Checkout = (pricingRulesProps) => {
   /**
    *Creates an instance of Checkout.
-   * @param {*} pricingRulesProps Object that contains 
+   * @param {*} pricingRulesProps Object that contains
    * {pricingRules: [{code, name, price}], discounts:[{code, discountFunc}]
    * @memberof Checkout
    */
 
-
-  constructor(pricingRulesProps) {
-    this.totalCount = 0;
-    this.items = [];
-    try {
-      const { pricingRules = [], discounts = [] } = pricingRulesProps;
-
-      this.discounts = discounts;
-
-      this.pricingRules = pricingRules
-        && pricingRules.reduce(
-          (total, current) => ({ ...total, [current.code]: { count: 0, ...current } }),
-          {},
-        );
-    } catch (e) {
-      console.error(e);
-      this.discounts = [];
-      this.pricingRules = {};
-    }
-  }
+  const _checkoutState = {
+    _totalCount: 0,
+    _items: [],
+    _pricingRules: {},
+    _discounts: [],
+  };
 
   /**
    *
    *
-   * @param {*} code Product to scan 
+   * @param {*} code Product to scan
    * @returns the instance Object
    * @memberof Checkout Update the total count and add a new item to items
    */
-  scan(code) {
-    const pricingRule = this.pricingRules[code];
+  const scan = (code) => {
+    const pricingRule = _checkoutState._pricingRules[code];
 
     if (!pricingRule) {
-      return this;
+      return checkoutMethods;
     }
 
-    this.items.push(code);
+    _checkoutState._items.push(code);
 
-    this.totalCount = this.totalCount += pricingRule.price;
+    _checkoutState._totalCount += pricingRule.price;
 
     pricingRule.count++;
 
-    return this;
-  }
+    return checkoutMethods;
+  };
 
   /**
    *
@@ -72,22 +58,18 @@ export class Checkout {
    * @returns Apply the discount to a particular code and return the sum of discounts
    * @memberof Checkout
    */
-  applyPricingRule(sum, { code, discountFunc }) {
-    const pricingRule = this.pricingRules[code];
+  const _applyPricingRule = (sum, { code, discountFunc }) => {
+    const pricingRule = _checkoutState._pricingRules[code];
     return pricingRule && pricingRule.count > 0 ? sum + discountFunc(pricingRule) : sum;
-  }
-
+  };
 
   /**
    *
    *
-   * @returns Discount to apply based on the discounts 
+   * @returns Discount to apply based on the discounts
    * @memberof Checkout
    */
-  applyDiscounts() {
-    return this.discounts.reduce(this.applyPricingRule.bind(this), 0);
-  }
-
+  const _applyDiscounts = () => _checkoutState._discounts.reduce(_applyPricingRule.bind(this), 0);
 
   /**
    *
@@ -96,9 +78,34 @@ export class Checkout {
    * based on discounts rules
    * @memberof Checkout
    */
-  total() {
-    const totalWithDiscount = this.totalCount - this.applyDiscounts();
-    return `Items: ${this.items.join(', ')}
+  const total = () => {
+    const totalWithDiscount = _checkoutState._totalCount - _applyDiscounts();
+    return `Items: ${_checkoutState._items.join(', ')}
            Total: ${parseFloat(totalWithDiscount).toFixed(2)}€`;
-  }
-}
+  };
+
+  const constructor = () => {
+    try {
+      const { pricingRules, discounts } = pricingRulesProps;
+
+      _checkoutState._discounts = discounts;
+
+      _checkoutState._pricingRules = pricingRules
+        && pricingRules.reduce(
+          (total, current) => ({ ...total, [current.code]: { count: 0, ...current } }),
+          {},
+        );
+    } catch (e) {
+      console.error(e.message);
+    }
+  };
+
+  constructor();
+
+  const checkoutMethods = {
+    scan,
+    total,
+  };
+
+  return checkoutMethods;
+};
