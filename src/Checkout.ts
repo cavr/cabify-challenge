@@ -1,30 +1,54 @@
 
 
 
-export interface PricingRule {
-  pricingRules: Array<any>,
-  discounts: Array<any>
+
+
+
+export interface PricingRule  {
+  code: string,
+  name: string,
+  price: number  
+}
+
+
+export interface PricingRuleState extends PricingRule {
+  count: number,
+  currentDiscount: number,
+  [key: string]: any;
+}
+
+export type DiscountFuncProps = {
+  code: number,
+  price: number
+}
+
+export type Discount = {
+  code: string,
+  discountFunc: (props: DiscountFuncProps) => number;
+}
+
+
+export interface PricingRuleProps {
+  pricingRules: Array<PricingRule>,
+  discounts: Array<Discount>
 }
 
 interface CheckoutState {
-  items: Array<string>,
-  pricingRules: any,
-  discounts: Array<any>,
+  items: Array<string>;
+  pricingRules?: PricingRuleState;
+  discounts: Array<Discount>;
 }
 
 
-export const Checkout = (pricingRulesProps: PricingRule) => {
+export const Checkout = (pricingRulesProps: PricingRuleProps) => {
 
-  const checkoutState: CheckoutState = {
-    items: [],
-    pricingRules: {},
-    discounts: [],
-  };
+  const checkoutState: CheckoutState | any = {};
 
 
   const init = () => {
     try {
       const { pricingRules, discounts } = pricingRulesProps;
+
 
       checkoutState.discounts = discounts;
 
@@ -52,7 +76,7 @@ export const Checkout = (pricingRulesProps: PricingRule) => {
 
       pricingRule.count++;    
 
-      const discounts = checkoutState.discounts.filter(discount => discount.code === code) || [];
+      const discounts = checkoutState.discounts.filter((discount:Discount) => discount.code === code) || [];
 
       pricingRule.currentDiscount = _applyDiscounts(discounts);
     }
