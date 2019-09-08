@@ -1,4 +1,5 @@
-import { moreNDiscount, nForOne } from '../src/discounts';
+import { moreNDiscount, nForOne } from '../discounts';
+
 
 export const discounts = [
   { code: 'TSHIRT', discountFunc: moreNDiscount(3, 19) },
@@ -8,7 +9,7 @@ export const discounts = [
   },
 ];
 
-export const pricingRules = [
+export const pricingRules:Array<any> = [
   {
     code: 'VOUCHER',
     name: 'Cabify Voucher',
